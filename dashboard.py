@@ -32,6 +32,8 @@ async def async_show_portfolio(
         interval=interval,
         refresh=refresh,
     )
+    if df.empty:
+        raise ValueError("No portfolio history data available")
     fig, ax = plt.subplots()
     df["equity"].plot(ax=ax)
     ax.set_title("Portfolio Value Over Time")
@@ -55,6 +57,8 @@ async def async_show_compare(
         refresh=refresh,
     )
     df = await df_task
+    if df.empty:
+        raise ValueError("No portfolio history data available")
     sp_task = sp500_history(df.index[0].date(), df.index[-1].date())
     sp = await sp_task
     norm_port = df["equity"] / df["equity"].iloc[0] * 100
@@ -82,6 +86,8 @@ async def async_show_forecast(
         interval=interval,
         refresh=refresh,
     )
+    if df.empty:
+        raise ValueError("No portfolio history data available")
     y = df["equity"].values
     x = np.arange(len(y))
     coeffs = np.polyfit(x, y, 1)
@@ -104,6 +110,8 @@ async def async_portfolio_fig(span="year", interval="day", refresh=False):
         interval=interval,
         refresh=refresh,
     )
+    if df.empty:
+        raise ValueError("No portfolio history data available")
     fig, ax = plt.subplots()
     df["equity"].plot(ax=ax)
     ax.set_title("Portfolio Value Over Time")
@@ -120,6 +128,8 @@ async def async_compare_fig(span="year", interval="day", refresh=False):
         refresh=refresh,
     )
     df = await df_task
+    if df.empty:
+        raise ValueError("No portfolio history data available")
     sp_task = sp500_history(df.index[0].date(), df.index[-1].date())
     sp = await sp_task
     norm_port = df["equity"] / df["equity"].iloc[0] * 100
@@ -140,6 +150,8 @@ async def async_forecast_fig(span="year", interval="day", refresh=False):
         interval=interval,
         refresh=refresh,
     )
+    if df.empty:
+        raise ValueError("No portfolio history data available")
     y = df["equity"].values
     x = np.arange(len(y))
     coeffs = np.polyfit(x, y, 1)

@@ -12,6 +12,7 @@ BASE_URL = "https://api.robinhood.com/"
 TOKEN_FILE = Path.home() / ".rh_token"
 SESSION = None
 TOKEN_INFO = None
+LOGOUT_REGISTERED = False
 
 async def _get_session():
     global SESSION
@@ -40,7 +41,7 @@ async def logout():
 
 async def login():
     """Authenticate and return access token."""
-    global TOKEN_INFO
+    global TOKEN_INFO, LOGOUT_REGISTERED
     info = _load_token()
     if info:
         TOKEN_INFO = info
@@ -78,7 +79,9 @@ async def login():
     info = {"access_token": token, "expires_at": time.time() + expires}
     _save_token(info)
     TOKEN_INFO = info
-    atexit.register(lambda: asyncio.run(logout()))
+    if not LOGOUT_REGISTERED:
+        atexit.register(lambda: asyncio.run(logout()))
+        LOGOUT_REGISTERED = True
     return token
 
 async def ensure_token():
