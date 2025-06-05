@@ -6,8 +6,8 @@ import json
 import time
 from pathlib import Path
 import atexit
-
 import pandas as pd
+
 BASE_URL = "https://api.robinhood.com/"
 TOKEN_FILE = Path.home() / ".rh_token"
 SESSION = None
@@ -96,7 +96,6 @@ async def fetch_portfolio_history(span="year", interval="day", refresh=False):
         data = await resp.json()
     cache_path.write_text(json.dumps(data))
     return data
-import pandas as pd
 
 async def portfolio_history_df(span="year", interval="day", refresh=False):
     data = await fetch_portfolio_history(span, interval, refresh)

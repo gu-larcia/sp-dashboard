@@ -1,9 +1,7 @@
-import os
 import sys
 import argparse
 import asyncio
 import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
 import yfinance as yf
 
