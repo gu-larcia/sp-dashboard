@@ -7,6 +7,7 @@ This project provides a simple command line interface for viewing Robinhood port
 * Fetches historical portfolio data using `robin_stocks`.
 * Compares portfolio performance to the S&P 500 using `yfinance`.
 * Displays charts for equity history, performance vs S&P 500 and a linear forecast.
+* Command line interface supports non-interactive usage and saving charts to files.
 
 ## Requirements
 
@@ -30,10 +31,17 @@ export RH_MFA="123456"
 Run the dashboard:
 
 ```bash
-python dashboard.py
+python dashboard.py interactive
 ```
 
-A menu will allow you to select different graphs.
+A menu will allow you to select different graphs. You can also run a
+specific graph directly from the command line. For example:
+
+```bash
+python dashboard.py portfolio --span year --interval day -o myplot.png
+```
+
+Use `--help` with any command for additional options.
 
 ## Disclaimer
 
