@@ -58,6 +58,7 @@ async def login():
         "username": username,
         "password": password,
         "grant_type": "password",
+        "scope": "internal",
     }
     if mfa:
         data["mfa_code"] = mfa
