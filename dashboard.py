@@ -19,8 +19,17 @@ async def sp500_history(start, end):
     sp.index = sp.index.tz_localize(None)
     return sp
 
-async def async_show_portfolio(span="year", interval="day", output=None, refresh=False):
-    df = await portfolio_history_df(span=span, interval=interval, refresh=refresh)
+async def async_show_portfolio(
+    span="year",
+    interval="day",
+    output=None,
+    refresh=False,
+):
+    df = await portfolio_history_df(
+        span=span,
+        interval=interval,
+        refresh=refresh,
+    )
     fig, ax = plt.subplots()
     df["equity"].plot(ax=ax)
     ax.set_title("Portfolio Value Over Time")
@@ -32,8 +41,17 @@ async def async_show_portfolio(span="year", interval="day", output=None, refresh
     else:
         plt.show()
 
-async def async_show_compare(span="year", interval="day", output=None, refresh=False):
-    df_task = portfolio_history_df(span=span, interval=interval, refresh=refresh)
+async def async_show_compare(
+    span="year",
+    interval="day",
+    output=None,
+    refresh=False,
+):
+    df_task = portfolio_history_df(
+        span=span,
+        interval=interval,
+        refresh=refresh,
+    )
     df = await df_task
     sp_task = sp500_history(df.index[0].date(), df.index[-1].date())
     sp = await sp_task
@@ -51,8 +69,17 @@ async def async_show_compare(span="year", interval="day", output=None, refresh=F
     else:
         plt.show()
 
-async def async_show_forecast(span="year", interval="day", output=None, refresh=False):
-    df = await portfolio_history_df(span=span, interval=interval, refresh=refresh)
+async def async_show_forecast(
+    span="year",
+    interval="day",
+    output=None,
+    refresh=False,
+):
+    df = await portfolio_history_df(
+        span=span,
+        interval=interval,
+        refresh=refresh,
+    )
     y = df["equity"].values
     x = np.arange(len(y))
     coeffs = np.polyfit(x, y, 1)
@@ -130,7 +157,11 @@ def parse_args():
     sub.add_parser("interactive", help="Run interactive menu")
 
     parser.add_argument("--no-login", action="store_true", help="Skip login")
-    parser.add_argument("--refresh", action="store_true", help="Bypass local cache")
+    parser.add_argument(
+        "--refresh",
+        action="store_true",
+        help="Bypass local cache",
+    )
 
     return parser.parse_args()
 

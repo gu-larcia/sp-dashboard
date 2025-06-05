@@ -44,8 +44,12 @@ async def login():
         TOKEN_INFO = info
         return info["access_token"]
 
-    username = os.getenv("RH_USERNAME") or input("Robinhood username: ")
-    password = os.getenv("RH_PASSWORD") or getpass.getpass("Robinhood password: ")
+    username = os.getenv("RH_USERNAME") or input(
+        "Robinhood username: "
+    )
+    password = os.getenv("RH_PASSWORD") or getpass.getpass(
+        "Robinhood password: "
+    )
     mfa = os.getenv("RH_MFA")
 
     data = {
@@ -68,7 +72,9 @@ async def login():
     info = {"access_token": token, "expires_at": time.time() + expires}
     _save_token(info)
     TOKEN_INFO = info
-    atexit.register(lambda: asyncio.get_event_loop().run_until_complete(logout()))
+    atexit.register(
+        lambda: asyncio.get_event_loop().run_until_complete(logout())
+    )
     return token
 
 async def ensure_token():
@@ -83,16 +89,24 @@ async def fetch_portfolio_history(span="year", interval="day", refresh=False):
     cache_dir = Path(".cache")
     cache_dir.mkdir(exist_ok=True)
     cache_path = cache_dir / f"portfolio_{span}_{interval}.json"
-    if cache_path.exists() and not refresh and (time.time() - cache_path.stat().st_mtime < 24*3600):
+    if cache_path.exists() and not refresh and (
+        time.time() - cache_path.stat().st_mtime < 24 * 3600
+    ):
         return json.loads(cache_path.read_text())
 
     params = {"span": span, "interval": interval}
     headers = {"Authorization": f"Bearer {token}"}
     session = await _get_session()
-    async with session.get(BASE_URL + "portfolios/historicals/", params=params, headers=headers) as resp:
+    async with session.get(
+        BASE_URL + "portfolios/historicals/",
+        params=params,
+        headers=headers,
+    ) as resp:
         if resp.status != 200:
             text = await resp.text()
-            raise RuntimeError(f"Failed to fetch history: {resp.status} {text}")
+            raise RuntimeError(
+                f"Failed to fetch history: {resp.status} {text}"
+            )
         data = await resp.json()
     cache_path.write_text(json.dumps(data))
     return data
