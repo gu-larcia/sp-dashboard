@@ -1,50 +1,28 @@
 import os
-import getpass
 import sys
-import atexit
 import argparse
+import asyncio
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import yfinance as yf
-from robin_stocks import robinhood as rh
 
+from robinhood_api import login, portfolio_history_df
 
-def login():
-    """Login to Robinhood using environment variables or interactive prompts."""
-    username = os.getenv("RH_USERNAME")
-    password = os.getenv("RH_PASSWORD")
-    if username is None:
-        username = input("Robinhood username: ")
-    if password is None:
-        password = getpass.getpass("Robinhood password: ")
-    mfa = os.getenv("RH_MFA")
-    if mfa is None:
-        mfa_input = input("MFA code (press enter if not required): ")
-        mfa = mfa_input if mfa_input else None
-    rh.login(username=username, password=password, mfa_code=mfa)
-    atexit.register(rh.logout)
-
-
-def portfolio_history(span="year", interval="day"):
-    """Return portfolio equity history as a DataFrame."""
-    data = rh.account.get_historical_portfolio(span=span, interval=interval)
-    df = pd.DataFrame(data)
-    df["begins_at"] = pd.to_datetime(df["begins_at"])
-    df.set_index("begins_at", inplace=True)
-    df["equity"] = df["equity"].astype(float)
-    return df
-
-
-def sp500_history(start, end):
-    """Download S&P500 historical data for comparison."""
-    sp = yf.download("^GSPC", start=start, end=end, progress=False)
+async def sp500_history(start, end):
+    """Asynchronously download S&P500 historical data."""
+    sp = await asyncio.to_thread(
+        yf.download,
+        "^GSPC",
+        start=start,
+        end=end,
+        progress=False,
+    )
     sp.index = sp.index.tz_localize(None)
     return sp
 
-
-def show_portfolio(span="year", interval="day", output=None):
-    df = portfolio_history(span=span, interval=interval)
+async def async_show_portfolio(span="year", interval="day", output=None, refresh=False):
+    df = await portfolio_history_df(span=span, interval=interval, refresh=refresh)
     fig, ax = plt.subplots()
     df["equity"].plot(ax=ax)
     ax.set_title("Portfolio Value Over Time")
@@ -56,10 +34,11 @@ def show_portfolio(span="year", interval="day", output=None):
     else:
         plt.show()
 
-
-def show_compare(span="year", interval="day", output=None):
-    df = portfolio_history(span=span, interval=interval)
-    sp = sp500_history(df.index[0].date(), df.index[-1].date())
+async def async_show_compare(span="year", interval="day", output=None, refresh=False):
+    df_task = portfolio_history_df(span=span, interval=interval, refresh=refresh)
+    df = await df_task
+    sp_task = sp500_history(df.index[0].date(), df.index[-1].date())
+    sp = await sp_task
     norm_port = df["equity"] / df["equity"].iloc[0] * 100
     norm_sp = sp["Adj Close"] / sp["Adj Close"].iloc[0] * 100
     fig, ax = plt.subplots()
@@ -74,9 +53,8 @@ def show_compare(span="year", interval="day", output=None):
     else:
         plt.show()
 
-
-def show_forecast(span="year", interval="day", output=None):
-    df = portfolio_history(span=span, interval=interval)
+async def async_show_forecast(span="year", interval="day", output=None, refresh=False):
+    df = await portfolio_history_df(span=span, interval=interval, refresh=refresh)
     y = df["equity"].values
     x = np.arange(len(y))
     coeffs = np.polyfit(x, y, 1)
@@ -93,7 +71,19 @@ def show_forecast(span="year", interval="day", output=None):
         plt.show()
 
 
-def menu():
+def show_portfolio(span="year", interval="day", output=None, refresh=False):
+    asyncio.run(async_show_portfolio(span, interval, output, refresh))
+
+
+def show_compare(span="year", interval="day", output=None, refresh=False):
+    asyncio.run(async_show_compare(span, interval, output, refresh))
+
+
+def show_forecast(span="year", interval="day", output=None, refresh=False):
+    asyncio.run(async_show_forecast(span, interval, output, refresh))
+
+
+def menu(refresh=False):
     options = {
         "1": ("Portfolio value over time", show_portfolio),
         "2": ("Performance vs S&P500", show_compare),
@@ -109,7 +99,7 @@ def menu():
             break
         _, action = options.get(choice, (None, None))
         if action:
-            action()
+            action(refresh=refresh)
         else:
             print("Invalid choice. Try again.")
 
@@ -121,7 +111,7 @@ def parse_args():
 
     common = {
         "span": dict(default="year", help="Data span e.g. day, week, year"),
-        "interval": dict(default="day", help="Data interval")
+        "interval": dict(default="day", help="Data interval"),
     }
 
     p = sub.add_parser("portfolio", help="Show portfolio value over time")
@@ -142,6 +132,7 @@ def parse_args():
     sub.add_parser("interactive", help="Run interactive menu")
 
     parser.add_argument("--no-login", action="store_true", help="Skip login")
+    parser.add_argument("--refresh", action="store_true", help="Bypass local cache")
 
     return parser.parse_args()
 
@@ -150,16 +141,16 @@ if __name__ == "__main__":
     args = parse_args()
     if not args.no_login:
         try:
-            login()
+            asyncio.run(login())
         except Exception as exc:
             print(f"Failed to login: {exc}")
             sys.exit(1)
 
     if args.command == "portfolio":
-        show_portfolio(args.span, args.interval, args.output)
+        show_portfolio(args.span, args.interval, args.output, args.refresh)
     elif args.command == "compare":
-        show_compare(args.span, args.interval, args.output)
+        show_compare(args.span, args.interval, args.output, args.refresh)
     elif args.command == "forecast":
-        show_forecast(args.span, args.interval, args.output)
+        show_forecast(args.span, args.interval, args.output, args.refresh)
     else:
-        menu()
+        menu(refresh=args.refresh)
