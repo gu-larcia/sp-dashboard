@@ -14,8 +14,6 @@ TOKEN_FILE = Path.home() / ".rh_token"
 SESSION = None
 TOKEN_INFO = None
 LOGOUT_REGISTERED = False
-<<<<<<< Updated upstream
-=======
 
 # Updated client IDs - try these in order
 CLIENT_IDS = [
@@ -23,7 +21,6 @@ CLIENT_IDS = [
     "c82SH0WZ3apipdQ9AX-7kgKxuLkMTkOW",  # Original (likely expired)
     "322b8cc5-551d-44c4-8312-8b81ac45b321",  # Alternative format
 ]
->>>>>>> Stashed changes
 
 async def _get_session():
     global SESSION
@@ -97,17 +94,6 @@ async def login():
         if mfa:
             data["mfa_code"] = mfa
 
-<<<<<<< Updated upstream
-    token = payload["access_token"]
-    expires = payload.get("expires_in", 86400)
-    info = {"access_token": token, "expires_at": time.time() + expires}
-    _save_token(info)
-    TOKEN_INFO = info
-    if not LOGOUT_REGISTERED:
-        atexit.register(lambda: asyncio.run(logout()))
-        LOGOUT_REGISTERED = True
-    return token
-=======
         try:
             async with session.post(BASE_URL + "oauth2/token/", data=data) as resp:
                 if resp.status == 200:
@@ -145,7 +131,6 @@ async def login():
         "This usually means Robinhood has updated their client ID. "
         "You may need to find the current client ID manually."
     )
->>>>>>> Stashed changes
 
 async def ensure_token():
     global TOKEN_INFO
