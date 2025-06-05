@@ -17,6 +17,8 @@ Install dependencies with:
 pip install -r requirements.txt
 ```
 
+`gradio` is listed as an optional dependency for the notebook interface.
+
 ## Usage
 
 Set your Robinhood credentials in environment variables or enter them when prompted:
@@ -41,6 +43,19 @@ python dashboard.py portfolio --span year --interval day -o myplot.png
 ```
 
 Use `--refresh` to bypass the local cache when you want the latest data.
+
+Launch the Gradio interface from the command line with:
+
+```bash
+python dashboard.py gradio
+```
+
+## Jupyter Notebook
+
+An example notebook `application-launch.ipynb` is provided for exploring the
+dashboard with a Gradio user interface. Simply open the notebook and execute all
+cells. The first cell installs the optional Gradio dependency and the second
+cell launches the interface by calling `dashboard.launch_gradio()`.
 
 ## Disclaimer
 
