@@ -59,3 +59,21 @@ async def test_fetch_portfolio_history(tmp_path, monkeypatch):
     )
     result = await api.fetch_portfolio_history(refresh=True)
     assert result == data
+
+
+@pytest.mark.asyncio
+async def test_token_file_permissions(tmp_path, monkeypatch):
+    api.TOKEN_FILE = tmp_path / "token.json"
+    monkeypatch.setenv("RH_USERNAME", "u")
+    monkeypatch.setenv("RH_PASSWORD", "p")
+    mock_session = AsyncMock()
+    resp = DummyResponse({"access_token": "tok", "expires_in": 10})
+    mock_session.post = lambda *a, **k: DummyCM(resp)
+    monkeypatch.setattr(
+        api,
+        "_get_session",
+        AsyncMock(return_value=mock_session),
+    )
+    await api.login()
+    mode = api.TOKEN_FILE.stat().st_mode & 0o777
+    assert mode == 0o600
