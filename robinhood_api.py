@@ -59,6 +59,9 @@ async def login():
         "password": password,
         "grant_type": "password",
         "scope": "internal",
+        "client_id": os.getenv(
+            "RH_CLIENT_ID", "c82SH0WZ3apipdQ9AX-7kgKxuLkMTkOW"
+        ),
     }
     if mfa:
         data["mfa_code"] = mfa
