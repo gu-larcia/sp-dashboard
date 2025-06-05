@@ -30,6 +30,7 @@ def _load_token():
 def _save_token(info):
     with open(TOKEN_FILE, "w") as f:
         json.dump(info, f)
+    os.chmod(TOKEN_FILE, 0o600)
 
 async def logout():
     global SESSION
