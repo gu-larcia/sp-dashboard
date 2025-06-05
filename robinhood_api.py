@@ -72,7 +72,6 @@ async def login():
 
     username = os.getenv("RH_USERNAME") or input("Robinhood username: ")
     password = os.getenv("RH_PASSWORD") or getpass.getpass("Robinhood password: ")
-    mfa = os.getenv("RH_MFA") or input("2FA code (6 digits): ").strip()
 
     # Try to get current client ID first
     current_client_id = await _get_current_client_id()
@@ -91,8 +90,6 @@ async def login():
             "scope": "internal",
             "client_id": client_id,
         }
-        if mfa:
-            data["mfa_code"] = mfa
 
         try:
             async with session.post(BASE_URL + "oauth2/token/", data=data) as resp:
