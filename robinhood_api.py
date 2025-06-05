@@ -36,6 +36,7 @@ async def logout():
     global SESSION
     if SESSION and not SESSION.closed:
         await SESSION.close()
+    SESSION = None
 
 async def login():
     """Authenticate and return access token."""
@@ -73,9 +74,7 @@ async def login():
     info = {"access_token": token, "expires_at": time.time() + expires}
     _save_token(info)
     TOKEN_INFO = info
-    atexit.register(
-        lambda: asyncio.get_event_loop().run_until_complete(logout())
-    )
+    atexit.register(lambda: asyncio.run(logout()))
     return token
 
 async def ensure_token():
