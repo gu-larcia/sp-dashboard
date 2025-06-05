@@ -153,31 +153,42 @@ async def async_forecast_fig(span="year", interval="day", refresh=False):
     return fig
 
 
+def _run_async(coro):
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        return asyncio.run(coro)
+    else:
+        import nest_asyncio
+        nest_asyncio.apply()
+        return loop.run_until_complete(coro)
+
+
 def show_portfolio(span="year", interval="day", output=None, refresh=False):
-    asyncio.run(async_show_portfolio(span, interval, output, refresh))
+    _run_async(async_show_portfolio(span, interval, output, refresh))
 
 
 def show_compare(span="year", interval="day", output=None, refresh=False):
-    asyncio.run(async_show_compare(span, interval, output, refresh))
+    _run_async(async_show_compare(span, interval, output, refresh))
 
 
 def show_forecast(span="year", interval="day", output=None, refresh=False):
-    asyncio.run(async_show_forecast(span, interval, output, refresh))
+    _run_async(async_show_forecast(span, interval, output, refresh))
 
 
 def portfolio_fig(span="year", interval="day", refresh=False):
     """Return a Matplotlib figure of the portfolio history."""
-    return asyncio.run(async_portfolio_fig(span, interval, refresh))
+    return _run_async(async_portfolio_fig(span, interval, refresh))
 
 
 def compare_fig(span="year", interval="day", refresh=False):
     """Return a Matplotlib figure comparing portfolio vs S&P500."""
-    return asyncio.run(async_compare_fig(span, interval, refresh))
+    return _run_async(async_compare_fig(span, interval, refresh))
 
 
 def forecast_fig(span="year", interval="day", refresh=False):
     """Return a Matplotlib figure with a simple forecast."""
-    return asyncio.run(async_forecast_fig(span, interval, refresh))
+    return _run_async(async_forecast_fig(span, interval, refresh))
 
 
 def launch_gradio():
@@ -229,7 +240,7 @@ def launch_gradio():
         allow_flagging="never",
     )
 
-    asyncio.run(login())
+    _run_async(login())
     gr.TabbedInterface(
         [portfolio_ui, compare_ui, forecast_ui],
         ["Portfolio", "Compare", "Forecast"],
@@ -299,7 +310,7 @@ if __name__ == "__main__":
     args = parse_args()
     if args.command != "gradio" and not args.no_login:
         try:
-            asyncio.run(login())
+            _run_async(login())
         except Exception as exc:
             print(f"Failed to login: {exc}")
             sys.exit(1)
